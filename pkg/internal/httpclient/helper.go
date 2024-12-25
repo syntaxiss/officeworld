@@ -26,15 +26,15 @@ type RequestData struct {
 	QueryParams map[string]string
 }
 
-func DoRequest[T any](ctx context.Context, cfg *config.Config, requestData RequestData) (T, error) {
+func DoRequest[T any](ctx context.Context, config *config.Configuracion, requestData RequestData) (T, error) {
 	var resource T
 
-	req, err := createRequest(ctx, cfg, requestData)
+	req, err := createRequest(ctx, config, requestData)
 	if err != nil {
 		return resource, err
 	}
 
-	b, err := Send(cfg.Requester, req)
+	b, err := Send(config.Requester, req)
 	if err != nil {
 		return resource, err
 	}
@@ -42,7 +42,7 @@ func DoRequest[T any](ctx context.Context, cfg *config.Config, requestData Reque
 	return unmarshal(b, resource)
 }
 
-func createRequest(ctx context.Context, cfg *config.Config, requestData RequestData) (*http.Request, error) {
+func createRequest(ctx context.Context, config *config.Configuracion, requestData RequestData) (*http.Request, error) {
 	body, err := marshal(requestData.Body)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func createRequest(ctx context.Context, cfg *config.Config, requestData RequestD
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	setHeaders(req, cfg)
+	setHeaders(req, config)
 	if err = setPathParams(req, requestData.PathParams); err != nil {
 		return nil, err
 	}
@@ -62,10 +62,10 @@ func createRequest(ctx context.Context, cfg *config.Config, requestData RequestD
 	return req, nil
 }
 
-func setHeaders(req *http.Request, cfg *config.Config) {
+func setHeaders(req *http.Request, config *config.Configuracion) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	req.Header.Set("Authorization", "WO "+cfg.AccessToken)
+	req.Header.Set("Authorization", "WO "+config.Authorization)
 }
 
 func setPathParams(req *http.Request, params map[string]string) error {

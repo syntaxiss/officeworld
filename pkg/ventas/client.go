@@ -24,12 +24,12 @@ type Client interface {
 }
 
 type client struct {
-	cfg *config.Config
+	config *config.Configuracion
 }
 
-func NewClient(c *config.Config) Client {
+func NewClient(c *config.Configuracion) Client {
 	return &client{
-		cfg: c,
+		config: c,
 	}
 }
 
@@ -39,7 +39,7 @@ func (c *client) Create(ctx context.Context, request Request) (*Response, error)
 		Method: http.MethodPost,
 		URL:    urlCreate,
 	}
-	resource, err := httpclient.DoRequest[*Response](ctx, c.cfg, requestData)
+	resource, err := httpclient.DoRequest[*Response](ctx, c.config, requestData)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *client) Get(ctx context.Context, id string) (*Response, error) {
 		URL:        urlGet,
 		PathParams: pathParams,
 	}
-	resource, err := httpclient.DoRequest[*Response](ctx, c.cfg, requestData)
+	resource, err := httpclient.DoRequest[*Response](ctx, c.config, requestData)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (c *client) Update(ctx context.Context, request Request) (*Response, error)
 		Method: http.MethodPut,
 		URL:    urlUpdate,
 	}
-	resource, err := httpclient.DoRequest[*Response](ctx, c.cfg, requestData)
+	resource, err := httpclient.DoRequest[*Response](ctx, c.config, requestData)
 	if err != nil {
 		return nil, err
 	}
