@@ -1,4 +1,4 @@
-package config
+package configuracion
 
 import (
 	"fmt"
@@ -16,17 +16,17 @@ type Configuracion struct {
 
 // New returns a new Config.
 func New(authorization string, opts ...Option) (*Configuracion, error) {
-	config := &Configuracion{
+	configuracion := &Configuracion{
 		Authorization: authorization,
 		Requester:     defaultrequester.New(),
 	}
 
 	// Apply all the functional options to configure the client.
 	for _, opt := range opts {
-		if err := opt(config); err != nil {
+		if err := opt(configuracion); err != nil {
 			return nil, fmt.Errorf("fail to build config: %w", err)
 		}
 	}
 
-	return config, nil
+	return configuracion, nil
 }

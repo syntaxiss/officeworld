@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/syntaxiss/officeworld-sdk-go/pkg/config"
+	"github.com/syntaxiss/officeworld-sdk-go/pkg/configuracion"
 )
 
 var (
@@ -26,7 +26,7 @@ type RequestData struct {
 	QueryParams map[string]string
 }
 
-func DoRequest[T any](ctx context.Context, config *config.Configuracion, requestData RequestData) (T, error) {
+func DoRequest[T any](ctx context.Context, config *configuracion.Configuracion, requestData RequestData) (T, error) {
 	var resource T
 
 	req, err := createRequest(ctx, config, requestData)
@@ -34,7 +34,22 @@ func DoRequest[T any](ctx context.Context, config *config.Configuracion, request
 		return resource, err
 	}
 
-	b, err := Send(config.Requester, req)
+	resp, err := config.Requester.Do(req)
+	if err != nil {
+		return resource, err
+	}
+	defer resp.Body.Close()
+
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "application/pdf" {
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return resource, err
+		}
+		return any(b).(T), nil
+	}
+
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return resource, err
 	}
@@ -42,7 +57,7 @@ func DoRequest[T any](ctx context.Context, config *config.Configuracion, request
 	return unmarshal(b, resource)
 }
 
-func createRequest(ctx context.Context, config *config.Configuracion, requestData RequestData) (*http.Request, error) {
+func createRequest(ctx context.Context, config *configuracion.Configuracion, requestData RequestData) (*http.Request, error) {
 	body, err := marshal(requestData.Body)
 	if err != nil {
 		return nil, err
@@ -62,7 +77,7 @@ func createRequest(ctx context.Context, config *config.Configuracion, requestDat
 	return req, nil
 }
 
-func setHeaders(req *http.Request, config *config.Configuracion) {
+func setHeaders(req *http.Request, config *configuracion.Configuracion) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Header.Set("Authorization", "WO "+config.Authorization)
